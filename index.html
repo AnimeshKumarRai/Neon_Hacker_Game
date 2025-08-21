@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Hacker - Number Guess Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap');
+        
+        :root {
+            --neon-pink: #ff2a6d;
+            --neon-blue: #05d9e8;
+            --neon-purple: #d300c5;
+            --dark-bg: #0d0221;
+        }
+        
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--neon-blue);
+            overflow-x: hidden;
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue), 0 0 15px var(--neon-blue);
+        }
+        
+        .neon-pink {
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-pink);
+        }
+        
+        .neon-purple {
+            color: var(--neon-purple);
+            text-shadow: 0 0 5px var(--neon-purple), 0 0 10px var(--neon-purple);
+        }
+        
+        .glow-box {
+            box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+        }
+        
+        .glow-box-pink {
+            box-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink);
+            border: 1px solid var(--neon-pink);
+        }
+        
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(5, 217, 232, 0.1) 0%,
+                rgba(5, 217, 232, 0) 10%
+            );
+            background-size: 100% 8px;
+            animation: scanline 6s linear infinite;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        @keyframes scanline {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 0 100%;
+            }
+        }
+        
+        .particle {
+            position: absolute;
+            background-color: var(--neon-blue);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .binary-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            opacity: 0.3;
+        }
+        
+        .binary-digit {
+            position: absolute;
+            color: var(--neon-blue);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            opacity: 0;
+            animation: fall linear infinite;
+        }
+        
+        @keyframes fall {
+            to {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+        
+        .hacker-input {
+            background-color: rgba(13, 2, 33, 0.7);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            font-family: 'Press Start 2P', cursive;
+            padding: 10px;
+            outline: none;
+        }
+        
+        .hacker-input:focus {
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+                text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            }
+            100% {
+                opacity: 0.7;
+            }
+        }
+        
+        .matrix-code {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.1;
+        }
+        
+        .cyber-btn {
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-purple));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .cyber-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 42, 109, 0.4);
+        }
+        
+        .cyber-btn:active {
+            transform: translateY(0);
+        }
+        
+        .cyber-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .cyber-btn:hover::before {
+            left: 100%;
+        }
+        
+        .terminal {
+            background-color: rgba(13, 2, 33, 0.8);
+            border: 1px solid var(--neon-blue);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: var(--neon-blue);
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .terminal::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            from, to { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        
+        .terminal-line {
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+        
+        .terminal-command {
+            color: var(--neon-pink);
+        }
+        
+        .terminal-response {
+            color: var(--neon-blue);
+        }
+        
+        .terminal-error {
+            color: #ff0000;
+            text-shadow: 0 0 5px #ff0000;
+        }
+        
+        .terminal-success {
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+        }
+        
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+            }
+            to {
+                box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue), 0 0 30px var(--neon-blue);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
+    <!-- Binary rain background -->
+    <div class="binary-rain" id="binaryRain"></div>
+    
+    <!-- Scanline effect -->
+    <div class="scanline"></div>
+    
+    <!-- Main container -->
+    <div class="max-w-3xl w-full relative z-10">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-6xl font-bold neon-text mb-2">NEON HACKER</h1>
+            <p class="text-xl neon-purple">Number Decryption Challenge</p>
+            <div class="flex justify-center mt-4">
+                <div class="w-16 h-1 bg-neon-blue glow-box"></div>
+                <div class="w-16 h-1 bg-neon-pink glow-box-pink mx-4"></div>
+                <div class="w-16 h-1 bg-neon-blue glow-box"></div>
+            </div>
+        </div>
+        
+        <!-- Game container -->
+        <div class="bg-black bg-opacity-70 backdrop-blur-sm rounded-lg p-6 glow-box mb-8">
+            <!-- Terminal output -->
+            <div class="terminal mb-6" id="terminal">
+                <div class="terminal-line">Initializing system...</div>
+                <div class="terminal-line">Booting decryption module...</div>
+                <div class="terminal-line terminal-success">System ready</div>
+                <div class="terminal-line">Welcome to Neon Hacker v2.4</div>
+                <div class="terminal-line">Your mission: decrypt the encrypted number</div>
+                <div class="terminal-line">Range: 1-</div>
+                <div class="terminal-line">Attempts remaining: <span id="attemptsRemaining" class="neon-pink">10</span></div>
+                <div class="terminal-line">Current score: <span id="currentScore" class="neon-purple">0</span></div>
+                <div class="terminal-line terminal-command">> Enter your guess (-1 to exit):</div>
+            </div>
+            
+            <!-- Input area -->
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="number" id="guessInput" class="hacker-input flex-grow text-center text-xl" placeholder="Enter decryption code..." min="-1" max="100">
+                <button id="submitGuess" class="cyber-btn font-bold">DECRYPT</button>
+            </div>
+            
+            <!-- Difficulty selector -->
+            <div class="mt-6">
+                <p class="text-center mb-2 neon-text">SELECT DIFFICULTY:</p>
+                <div class="flex justify-center gap-4">
+                    <button data-difficulty="easy" class="cyber-btn bg-green-500 hover:bg-green-600">EASY</button>
+                    <button data-difficulty="medium" class="cyber-btn bg-yellow-500 hover:bg-yellow-600">MEDIUM</button>
+                    <button data-difficulty="hard" class="cyber-btn bg-red-500 hover:bg-red-600">HARD</button>
+                </div>
+            </div>
+            
+            <!-- Exit button -->
+            <div class="mt-4 text-center">
+                <button id="exitGame" class="cyber-btn bg-gray-500 hover:bg-gray-600">EXIT GAME</button>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="bg-black bg-opacity-50 p-4 rounded glow-box">
+                <p class="text-sm neon-purple">Games Played</p>
+                <p class="text-2xl font-bold" id="gamesPlayed">0</p>
+            </div>
+            <div class="bg-black bg-opacity-50 p-4 rounded glow-box">
+                <p class="text-sm neon-purple">Games Won</p>
+                <p class="text-2xl font-bold" id="gamesWon">0</p>
+            </div>
+            <div class="bg-black bg-opacity-50 p-4 rounded glow-box">
+                <p class="text-sm neon-purple">High Score</p>
+                <p class="text-2xl font-bold" id="highScore">0</p>
+            </div>
+            <div class="bg-black bg-opacity-50 p-4 rounded glow-box">
+                <p class="text-sm neon-purple">Win Rate</p>
+                <p class="text-2xl font-bold" id="winRate">0%</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Audio elements -->
+    <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"></audio>
+    <audio id="errorSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3"></audio>
+    <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3"></audio>
+    <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+    
+    <script>
+        // Game state
+        let targetNumber;
+        let attemptsLeft;
+        let score;
+        let gamesPlayed = 0;
+        let gamesWon = 0;
+        let highScore = 0;
+        let difficulty = 'medium';
+        let gameActive = true;
+        
+        // DOM elements
+        const guessInput = document.getElementById('guessInput');
+        const submitGuess = document.getElementById('submitGuess');
+        const exitGame = document.getElementById('exitGame');
+        const terminal = document.getElementById('terminal');
+        const attemptsRemaining = document.getElementById('attemptsRemaining');
+        const currentScore = document.getElementById('currentScore');
+        const gamesPlayedElement = document.getElementById('gamesPlayed');
+        const gamesWonElement = document.getElementById('gamesWon');
+        const highScoreElement = document.getElementById('highScore');
+        const winRateElement = document.getElementById('winRate');
+        
+        // Audio elements
+        const clickSound = document.getElementById('clickSound');
+        const errorSound = document.getElementById('errorSound');
+        const successSound = document.getElementById('successSound');
+        const winSound = document.getElementById('winSound');
+        
+        // Initialize binary rain
+        function initBinaryRain() {
+            const binaryRain = document.getElementById('binaryRain');
+            const chars = ['0', '1'];
+            
+            for (let i = 0; i < 100; i++) {
+                const digit = document.createElement('div');
+                digit.className = 'binary-digit';
+                digit.textContent = chars[Math.floor(Math.random() * chars.length)];
+                digit.style.left = `${Math.random() * 100}%`;
+                digit.style.top = `${Math.random() * -100}px`;
+                digit.style.animationDuration = `${5 + Math.random() * 10}s`;
+                digit.style.animationDelay = `${Math.random() * 5}s`;
+                binaryRain.appendChild(digit);
+            }
+        }
+        
+        // Create particle effect
+        function createParticles(x, y, color) {
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = `${Math.random() * 8 + 2}px`;
+                particle.style.height = particle.style.width;
+                particle.style.backgroundColor = color || `hsl(${Math.random() * 60 + 180}, 100%, 50%)`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                
+                document.body.appendChild(particle);
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 1 + Math.random() * 3;
+                const lifetime = 500 + Math.random() * 1000;
+                
+                gsap.to(particle, {
+                    x: Math.cos(angle) * velocity * 100,
+                    y: Math.sin(angle) * velocity * 100,
+                    opacity: 0,
+                    duration: lifetime / 1000,
+                    ease: 'power2.out',
+                    onComplete: () => {
+                        particle.remove();
+                    }
+                });
+            }
+        }
+        
+        // Add line to terminal
+        function addTerminalLine(text, type = 'response') {
+            const line = document.createElement('div');
+            line.className = `terminal-line terminal-${type}`;
+            line.textContent = text;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // Initialize game
+        function initGame() {
+            gameActive = true;
+            
+            // Set target number based on difficulty
+            const maxNumber = difficulty === 'easy' ? 50 : difficulty === 'hard' ? 200 : 100;
+            targetNumber = Math.floor(Math.random() * maxNumber) + 1;
+            
+            // Set attempts based on difficulty
+            attemptsLeft = difficulty === 'easy' ? 15 : difficulty === 'hard' ? 5 : 10;
+            
+            // Reset score for this round
+            score = 0;
+            
+            // Update UI
+            attemptsRemaining.textContent = attemptsLeft;
+            currentScore.textContent = score;
+            
+            // Clear terminal and add initial message
+            terminal.innerHTML = '';
+            addTerminalLine(`Initializing ${difficulty.toUpperCase()} decryption sequence...`, 'response');
+            addTerminalLine(`Target encrypted within range: 1-${maxNumber}`, 'response');
+            addTerminalLine(`Attempts allocated: ${attemptsLeft}`, 'response');
+            addTerminalLine('> Enter your guess :', 'command');
+            
+            // Focus input
+            guessInput.focus();
+            
+            // Create particles for new game
+            const rect = terminal.getBoundingClientRect();
+            createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, '#05d9e8');
+        }
+        
+        // Exit game
+        function exitGameHandler() {
+            gameActive = false;
+            addTerminalLine('SYSTEM TERMINATED: User initiated exit', 'error');
+            addTerminalLine('> Game ended. Press any difficulty button to restart.', 'command');
+            
+            // Create exit particles
+            createParticles(
+                guessInput.offsetLeft + guessInput.offsetWidth / 2, 
+                guessInput.offsetTop + guessInput.offsetHeight / 2,
+                '#ff0000'
+            );
+            
+            // Disable input and submit button
+            guessInput.disabled = true;
+            submitGuess.disabled = true;
+            
+            // Play exit sound
+            errorSound.currentTime = 0;
+            errorSound.play();
+        }
+        
+        // Check guess
+        function checkGuess() {
+            const guess = parseInt(guessInput.value);
+            
+            // Check if player wants to exit
+            if (guess === -1) {
+                exitGameHandler();
+                return;
+            }
+            
+            // Validate input
+            if (isNaN(guess) || guess < 1 || guess > (difficulty === 'easy' ? 50 : difficulty === 'hard' ? 200 : 100)) {
+                addTerminalLine('ERROR: Invalid input. Enter a number in range or -1 to exit.', 'error');
+                errorSound.currentTime = 0;
+                errorSound.play();
+                createParticles(guessInput.offsetLeft + guessInput.offsetWidth / 2, guessInput.offsetTop + guessInput.offsetHeight / 2, '#ff0000');
+                return;
+            }
+            
+            // Play click sound
+            clickSound.currentTime = 0;
+            clickSound.play();
+            
+            // Decrement attempts
+            attemptsLeft--;
+            attemptsRemaining.textContent = attemptsLeft;
+            
+            // Check guess
+            if (guess === targetNumber) {
+                // Calculate score (higher for fewer attempts used)
+                score += attemptsLeft * (difficulty === 'easy' ? 10 : difficulty === 'hard' ? 30 : 20);
+                
+                // Update stats
+                gamesPlayed++;
+                gamesWon++;
+                if (score > highScore) {
+                    highScore = score;
+                }
+                
+                // Update UI
+                currentScore.textContent = score;
+                gamesPlayedElement.textContent = gamesPlayed;
+                gamesWonElement.textContent = gamesWon;
+                highScoreElement.textContent = highScore;
+                winRateElement.textContent = `${Math.round((gamesWon / gamesPlayed) * 100)}%`;
+                
+                // Add terminal message
+                addTerminalLine(`DECRYPTION SUCCESSFUL!`, 'success');
+                addTerminalLine(`Target number was ${targetNumber}`, 'success');
+                addTerminalLine(`You earned ${score} points`, 'success');
+                addTerminalLine('> System resetting...', 'command');
+                
+                // Play win sound
+                winSound.currentTime = 0;
+                winSound.play();
+                
+                // Create celebration particles
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        createParticles(
+                            guessInput.offsetLeft + guessInput.offsetWidth / 2, 
+                            guessInput.offsetTop + guessInput.offsetHeight / 2,
+                            `hsl(${Math.random() * 60 + 120}, 100%, 50%)`
+                        );
+                    }, i * 200);
+                }
+                
+                // Reset game after delay
+                setTimeout(initGame, 3000);
+            } else {
+                // Give hint
+                const hint = guess < targetNumber ? 'HIGHER' : 'LOWER';
+                addTerminalLine(`DECRYPTION FAILED: ${hint}`, 'error');
+                addTerminalLine(`Attempts remaining: ${attemptsLeft}`, 'response');
+                addTerminalLine('> Enter your guess (-1 to exit):', 'command');
+                
+                // Play error sound
+                errorSound.currentTime = 0;
+                errorSound.play();
+                
+                // Create particles
+                createParticles(guessInput.offsetLeft + guessInput.offsetWidth / 2, guessInput.offsetTop + guessInput.offsetHeight / 2, '#ff2a6d');
+                
+                // Check if game over
+                if (attemptsLeft <= 0) {
+                    // Update stats
+                    gamesPlayed++;
+                    
+                    // Update UI
+                    gamesPlayedElement.textContent = gamesPlayed;
+                    winRateElement.textContent = `${Math.round((gamesWon / gamesPlayed) * 100)}%`;
+                    
+                    // Add terminal message
+                    addTerminalLine(`GAME OVER: System locked`, 'error');
+                    addTerminalLine(`Target number was ${targetNumber}`, 'error');
+                    addTerminalLine('> Initializing new sequence...', 'command');
+                    
+                    // Create explosion particles
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            createParticles(
+                                guessInput.offsetLeft + guessInput.offsetWidth / 2, 
+                                guessInput.offsetTop + guessInput.offsetHeight / 2,
+                                '#ff0000'
+                            );
+                        }, i * 300);
+                    }
+                    
+                    // Reset game after delay
+                    setTimeout(initGame, 3000);
+                }
+            }
+            
+            // Clear input
+            guessInput.value = '';
+            guessInput.focus();
+        }
+        
+        // Set difficulty
+        function setDifficulty(level) {
+            difficulty = level;
+            gameActive = true;
+            
+            // Re-enable input and submit button if they were disabled
+            guessInput.disabled = false;
+            submitGuess.disabled = false;
+            
+            addTerminalLine(`Difficulty set to ${level.toUpperCase()}`, 'response');
+            successSound.currentTime = 0;
+            successSound.play();
+            initGame();
+        }
+        
+        // Event listeners
+        submitGuess.addEventListener('click', checkGuess);
+        exitGame.addEventListener('click', exitGameHandler);
+        guessInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkGuess();
+            }
+        });
+        
+        document.querySelectorAll('[data-difficulty]').forEach(button => {
+            button.addEventListener('click', () => {
+                setDifficulty(button.dataset.difficulty);
+            });
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initBinaryRain();
+            initGame();
+            
+            // Add click particles to buttons
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const rect = button.getBoundingClientRect();
+                    createParticles(
+                        rect.left + rect.width / 2,
+                        rect.top + rect.height / 2,
+                        button.classList.contains('bg-red-500') ? '#ff0000' : 
+                        button.classList.contains('bg-yellow-500') ? '#ffff00' : 
+                        button.classList.contains('bg-green-500') ? '#00ff00' : 
+                        button.classList.contains('bg-gray-500') ? '#888888' : '#05d9e8'
+                    );
+                });
+            });
+        });
+    </script>
+</body>
+</html>
